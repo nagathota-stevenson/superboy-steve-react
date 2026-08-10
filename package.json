@@ -1,0 +1,23 @@
+{
+  "name": "superboy-steve-portfolio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "generate:og": "node ./scripts/generate-og-image.js",
+    "build": "npm run generate:og && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^12.17.1",
+    "firebase-cli": "^1.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^4.11.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
+  }
+}
