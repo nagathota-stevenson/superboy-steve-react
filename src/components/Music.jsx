@@ -1,9 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Reveal from './Reveal.jsx';
 import { FaSpotify, FaYoutube } from 'react-icons/fa';
 import { SiApplemusic } from 'react-icons/si';
 
 const SONGS = [
+  {
+    title: 'Anudhinam',
+    image: '/artworks/anudhinam.jpg',
+    links: {
+      spotify: 'https://open.spotify.com/track/5Tdi5HoJHJg45hgxCqp1Un',
+      apple: 'https://music.apple.com/us/album/anudhinam/6806079926?i=6806079927',
+      youtube: 'https://youtu.be/9JDMqAAHzCE',
+    },
+  },
   {
     title: 'Neethone',
     image: '/artworks/neethone.jpg',
@@ -52,10 +61,46 @@ const SONGS = [
 ];
 
 export default function Music() {
+  const videoRef = useRef(null);
   const [currentArtwork, setCurrentArtwork] = useState(null);
   const [previousArtwork, setPreviousArtwork] = useState(null);
   const [currentVisible, setCurrentVisible] = useState(false);
   const [previousVisible, setPreviousVisible] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    function startAtRandomMoment() {
+      if (video.duration && Number.isFinite(video.duration)) {
+        video.currentTime = Math.random() * Math.max(video.duration - 0.5, 0);
+      }
+      video.play().catch(() => {});
+    }
+
+    if (video.readyState >= 1) {
+      startAtRandomMoment();
+    } else {
+      video.addEventListener('loadedmetadata', startAtRandomMoment, { once: true });
+    }
+
+    return () => video.removeEventListener('loadedmetadata', startAtRandomMoment);
+  }, []);
+
+  useEffect(() => {
+    const musicSection = document.getElementById('music');
+    if (!musicSection) return;
+
+    function updateFilmPosition() {
+      const bounds = musicSection.getBoundingClientRect();
+      const progress = Math.min(Math.max(-bounds.top / Math.max(bounds.height - window.innerHeight, 1), 0), 1);
+      musicSection.style.setProperty('--film-progress', progress.toFixed(3));
+    }
+
+    updateFilmPosition();
+    window.addEventListener('scroll', updateFilmPosition, { passive: true });
+    return () => window.removeEventListener('scroll', updateFilmPosition);
+  }, []);
 
   useEffect(() => {
     if (!currentArtwork) {
@@ -101,6 +146,18 @@ export default function Music() {
 
   return (
     <section id="music" className="music-section">
+      <div className="music-video-backdrop" aria-hidden="true">
+        <video
+          ref={videoRef}
+          className="music-video"
+          src="/bg/webbg_1.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+        <div className="music-video-overlay" />
+      </div>
       <div
         className={`music-hover-bg music-hover-bg--prev ${previousVisible ? 'visible' : ''}`}
         style={{ backgroundImage: previousArtwork ? `url(${previousArtwork})` : 'none' }}

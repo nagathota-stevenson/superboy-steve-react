@@ -103,6 +103,43 @@ h2.section-title{
   position:relative;
   overflow:hidden;
   z-index:1;
+  isolation:isolate;
+  background:#0A0A0C;
+}
+
+.music-video-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.music-video{
+  position:absolute;
+  inset:-6%;
+  width:112%;
+  height:112%;
+  object-fit:cover;
+  object-position:center;
+  opacity:0.56;
+  filter:saturate(0.72) contrast(1.08) brightness(0.62);
+  transform:translateY(calc(var(--film-progress, 0) * -5%)) scale(1.08);
+  transition:transform 0.25s linear;
+  will-change:transform;
+}
+
+.music-video-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(10,10,12,0.52) 0%, rgba(10,10,12,0.18) 24%, rgba(10,10,12,0.82) 76%, #0A0A0C 100%),
+    linear-gradient(90deg, rgba(10,10,12,0.72) 0%, transparent 45%, rgba(10,10,12,0.52) 100%);
+}
+
+.music-section > .container{
+  padding-top:clamp(110px,15vw,180px);
+  padding-bottom:clamp(100px,15vw,180px);
 }
 
 .music-hover-bg{
