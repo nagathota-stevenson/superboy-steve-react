@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "pocketWaitlist": {
+      "$subscriberId": {
+        ".write": "$subscriberId.matches(/^[a-f0-9]{64}$/) && newData.exists() && (!data.exists() || newData.child('email').val() == data.child('email').val())",
+        ".validate": "newData.hasChildren(['email', 'source', 'consent', 'consentVersion', 'subscribedAt'])",
+        "email": { ".validate": "newData.isString() && newData.val().length <= 254 && newData.val().matches(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/) && newData.val() == newData.val().toLowerCase()" },
+        "source": { ".validate": "newData.val() == 'pocket-website'" },
+        "consent": { ".validate": "newData.val() == true" },
+        "consentVersion": { ".validate": "newData.val() == '2026-09-09'" },
+        "subscribedAt": { ".validate": "newData.isNumber() && newData.val() == now" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

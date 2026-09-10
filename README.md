@@ -1,4 +1,4 @@
-# Superboy Steve — Portfolio (React)
+# Superboy Steve | Portfolio (React)
 
 Stevenson Nagathota's portfolio, built with Vite + React. Same design as the
 static HTML version, componentized: real spring physics (damping/response
@@ -51,19 +51,19 @@ src/
 
 ## Editing content
 
-Everything in `src/data.js` — skill categories, experience entries, and
-project cards — is plain data. Edit those arrays; the layout updates
+Everything in `src/data.js`, including skill categories, experience entries, and
+project cards, is plain data. Edit those arrays; the layout updates
 automatically.
 
 ## Motion system
 
 `src/hooks/useSpring.js` exports a small `Spring` class using damping ratio +
 response (seconds) instead of fixed-duration easing, so any spring can be
-redirected mid-flight from wherever it currently is — the interruptibility
+redirected mid-flight from wherever it currently is, preserving the interruptibility
 model described in Apple's fluid-interface design talks. It's used directly
 (not through a JS animation library) so behavior stays fully inspectable and
 dependency-free.
 
-All motion respects `prefers-reduced-motion: reduce` — ambient blobs and
+All motion respects `prefers-reduced-motion: reduce`, so ambient blobs and
 magnetic pull are skipped entirely, and scroll reveals fall back to a plain
 opacity fade.

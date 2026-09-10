@@ -1,0 +1,17 @@
+import sharp from 'sharp';
+import opentype from 'opentype.js';
+import {readFileSync,writeFileSync}from'node:fs';
+import {resolve}from'node:path';
+const out=resolve('outputs/pocket-ad/layers'),W=1080,H=1350;
+const bytes=readFileSync('public/pocket/InterVariable.ttf'),font=opentype.parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
+function text(value,x,y,size,color){let d='',cursor=x;for(const ch of value){const g=font.charToGlyph(ch);d+=' '+g.getPath(cursor,y,size).toPathData(2);cursor+=g.advanceWidth/font.unitsPerEm*size;}return`<path d="${d}" fill="${color}"/>`;}
+async function layer(name,body){const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${body}</svg>`;await sharp(Buffer.from(svg)).png().toFile(`${out}/${name}.png`);}
+await layer('07-Background',`<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0c0c10"/><stop offset="1" stop-color="#25192e"/></linearGradient><radialGradient id="halo"><stop stop-color="#a57bda" stop-opacity=".22"/><stop offset="1" stop-color="#a57bda" stop-opacity="0"/></radialGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><ellipse cx="854" cy="405" rx="450" ry="445" fill="url(#halo)"/><path d="M72 1270H1008" stroke="#ffffff20"/>`);
+await layer('06-Pocket-logo',`<defs><linearGradient id="metal" x2="1" y2="1"><stop stop-color="#f4ebff"/><stop offset=".4" stop-color="#af8fd3"/><stop offset=".7" stop-color="#ebddfb"/><stop offset="1" stop-color="#735087"/></linearGradient><g id="mark"><circle r="137"/><path d="M-136-11H-71C-31-11-40 63 0 63S31-11 71-11h65"/></g></defs><g fill="none" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><use href="#mark" transform="translate(865 323)" stroke="#46304f"/><use href="#mark" transform="translate(861 318)" stroke="#745787"/><use href="#mark" transform="translate(857 312)" stroke="url(#metal)"/></g>`);
+await layer('05-Headline',`${text('Make room',67,220,102,'#f5f0fa')}${text('for what',67,324,102,'#f5f0fa')}${text('matters.',67,428,102,'#bda1ed')}${text('Less conflict. More connection.',73,489,26,'#b9aec6')}`);
+await layer('04-Brand-and-captions',`${text('pocket',72,92,40,'#f5f0fa')}${text('SPECTRAL SIDECHAIN / AUDIO PLUGIN',586,88,15,'#a89ab9')}${text('MEET POCKET',73,552,13,'#c9b8df')}${text('DEVELOPMENT PREVIEW',814,552,12,'#92829f')}${text('Stevenson Nagathota',73,1310,14,'#8d7c9d')}${text('COMING SOON',867,1310,14,'#b8a4ce')}`);
+await layer('03-Interface-frame',`<defs><filter id="shadow" x="-30%" y="-30%" width="160%" height="200%"><feGaussianBlur stdDeviation="20"/></filter></defs><rect x="77" y="598" width="926" height="513" rx="12" fill="#000" opacity=".4" filter="url(#shadow)"/><rect x="67" y="573" width="946" height="539" rx="8" fill="#ffffff18"/>`);
+const panel=await sharp('public/pocket/Pocket-1280.png').resize(936,527,{fit:'fill'}).png().toBuffer();
+await sharp({create:{width:W,height:H,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite([{input:panel,left:72,top:578}]).png().toFile(`${out}/02-Actual-plugin-interface.png`);
+await layer('01-Waitlist-CTA',`${text('Hear what a little space can do.',73,1157,26,'#e4d9ef')}<rect x="72" y="1184" width="267" height="58" rx="7" fill="#c4a6ef"/>${text('Join the waitlist',94,1221,22,'#23162f')}<path d="M299 1204h13v13m-14 1 14-14" fill="none" stroke="#23162f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${text('superboysteve.com/pocket',641,1221,23,'#c7b4d9')}`);
+console.log('Seven full-resolution composition layers ready for Photoshop.');

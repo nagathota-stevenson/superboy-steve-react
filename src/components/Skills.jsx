@@ -126,7 +126,7 @@ export default function Skills() {
             <div className="eyebrow">Technical Skills</div>
             <h2 className="section-title">Expertise across the<br />modern stack.</h2>
             <p className="section-lede">
-              Focused on scalability and performance — from frontend architecture through to cloud infrastructure.
+              Focused on scalability and performance, from frontend architecture through to cloud infrastructure.
             </p>
           </div>
         </Reveal>

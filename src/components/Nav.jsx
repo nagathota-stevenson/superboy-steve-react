@@ -6,6 +6,7 @@ export default function Nav({ isMusicPage = false }) {
     ? [
         { id: 'home', label: 'Home', href: '/' },
         { id: 'music', label: 'Music', href: '/music' },
+        { id: 'pocket', label: 'Pocket', href: '/pocket' },
       ]
     : [
         { id: 'home', label: 'Home', href: '#home' },
@@ -14,6 +15,7 @@ export default function Nav({ isMusicPage = false }) {
         { id: 'experience', label: 'Experience', href: '#experience' },
         { id: 'work', label: 'Work', href: '#work' },
         { id: 'music', label: 'Music', href: '/music' },
+        { id: 'pocket', label: 'Pocket', href: '/pocket' },
         { id: 'contact', label: 'Contact', href: '#contact' },
       ];
 

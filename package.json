@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "generate:og": "node ./scripts/generate-og-image.js",
+    "generate:og": "node ./scripts/generate-og-image.js && node ./scripts/generate-pocket-preview.mjs",
     "build": "npm run generate:og && vite build",
     "preview": "vite preview"
   },
@@ -14,10 +14,14 @@
     "firebase-cli": "^1.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-icons": "^4.11.0"
+    "react-icons": "^4.11.0",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "libtess": "^1.2.2",
+    "opentype.js": "^2.0.0",
+    "sharp": "^0.35.4",
     "vite": "^5.4.0"
   }
 }
