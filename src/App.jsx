@@ -1,4 +1,3 @@
-import { PocketSuccess } from './components/PocketPurchase.jsx';
 import './pocket.css';
 import Nav from './components/Nav.jsx';
 import Home from './Home.jsx';
@@ -10,7 +9,6 @@ export default function App() {
   const isMusicPage = pathname === '/music';
   const isPocketPage = pathname === '/pocket';
 
-  if (pathname === '/success') return <PocketSuccess />;
   if (isPocketPage) return <PocketPage />;
 
   return (

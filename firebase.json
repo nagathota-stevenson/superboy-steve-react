@@ -8,24 +8,6 @@
     ],
     "rewrites": [
       {
-        "source": "/api/pocket/**",
-        "function": {
-          "functionId": "pocketApi",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/api/stripe/webhook",
-        "function": {
-          "functionId": "pocketStripeWebhook",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/success",
-        "destination": "/pocket.html"
-      },
-      {
         "source": "/pocket",
         "destination": "/pocket.html"
       },
@@ -74,30 +56,10 @@
             "value": "public, max-age=31536000, immutable"
           }
         ]
-      },
-      {
-        "source": "/success",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-store"
-          },
-          {
-            "key": "Referrer-Policy",
-            "value": "no-referrer"
-          }
-        ]
       }
     ]
   },
   "database": {
     "rules": "database.rules.json"
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs22"
-  },
-  "storage": {
-    "rules": "storage.rules"
   }
 }
