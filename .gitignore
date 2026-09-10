@@ -8,4 +8,5 @@ dist
 !.env.example
 functions/.secret.local
 private-releases/
+public/bg/webbg_1.mp4
 service-account*.json
