@@ -5,7 +5,7 @@ import { getDatabase } from 'firebase-admin/database';
 import { getStorage } from 'firebase-admin/storage';
 import { createHash } from 'node:crypto';
 import Stripe from 'stripe';
-import { AMOUNT, PRODUCT, paidSession } from './payment-policy.js';
+import { AMOUNT, PRODUCT, paidSession, downloadEligible } from './payment-policy.js';
 initializeApp({ databaseURL: 'https://superboysteve-e6cea-default-rtdb.firebaseio.com' });
 const key=defineSecret('STRIPE_SECRET_KEY'), hook=defineSecret('STRIPE_WEBHOOK_SECRET');
 const origin=defineString('POCKET_ORIGIN',{default:'https://superboysteve.com'});
@@ -49,6 +49,10 @@ export const pocketApi=onRequest({...options,secrets:[key]},async(req,res)=>{
   }
   if(route==='/status' && req.method==='GET'){
    const order=(await ref.get()).val();
+   if(order?.status==='paid'){
+    const payment=await stripe().paymentIntents.retrieve(order.paymentIntent,{expand:['latest_charge']});
+    if(!downloadEligible(payment))return res.json({status:'refunded'});
+   }
    return res.json({status:order?.status||'pending'});
   }
   if(route==='/download' && req.method==='POST'){
@@ -59,7 +63,7 @@ export const pocketApi=onRequest({...options,secrets:[key]},async(req,res)=>{
    if(order?.status!=='paid'||order.amountPaid!==AMOUNT||order.currency!=='usd')return res.status(403).json({error:'Payment has not been verified.'});
   // Recheck Stripe so a refunded purchase cannot mint new download URLs.
   const pi=await stripe().paymentIntents.retrieve(order.paymentIntent,{expand:['latest_charge']});
-  if(pi.status!=='succeeded'||pi.latest_charge?.refunded||pi.latest_charge?.amount_refunded>0)return res.status(403).json({error:'Purchase is no longer eligible for download.'});
+  if(!downloadEligible(pi))return res.status(403).json({error:'This purchase was refunded or is no longer eligible for download.'});
   const selectedArchive=platform==='windows'?windowsArchive.value():archive.value();
   const [exists]=await getStorage().bucket(bucket.value()).file(selectedArchive).exists();
   if(!exists)return res.status(503).json({error:'This download is temporarily unavailable.'});
@@ -83,13 +87,16 @@ export const pocketStripeWebhook=onRequest({...options,secrets:[key,hook]},async
  try{
   const ref=getDatabase().ref('pocketOrders/'+s.metadata.order_id);
   const result=await ref.transaction(order=>{
-   if(!order||order.product!==PRODUCT||order.amountExpected!==AMOUNT||order.sessionId&&order.sessionId!==s.id)return;
+   if(!order)return;
+   if(order.product!==PRODUCT||order.amountExpected!==AMOUNT||order.sessionId&&order.sessionId!==s.id)return;
    if(order.status==='paid')return order;
    return {...order,status:'paid',email:s.customer_details.email,sessionId:s.id,paymentIntent:s.payment_intent,
     paymentStatus:s.payment_status,amountPaid:s.amount_total,currency:s.currency,paidAt:Date.now(),stripeEventId:event.id,licenseKey:null};
   });
-  if(!result.committed)return res.status(500).send('Order unavailable; retry required');
+  if(!result.committed||result.snapshot.val()?.status!=='paid'){
+   console.error('Stripe order unavailable',s.metadata.order_id,s.id);
+   return res.status(500).send('Order unavailable; retry required');
+  }
   return res.json({received:true});
  }catch{return res.status(500).send('Persistence failed; retry required');}
 });
-
