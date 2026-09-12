@@ -6,45 +6,6 @@ import PocketInterface3D from './components/PocketInterface3D.jsx';
 import './pocket.css';
 
 const Arrow = () => <span className="pk-arrow" aria-hidden="true">↗</span>;
-const focusSignup = () => document.getElementById('pocket-email')?.focus({ preventScroll: true });
-
-function SignupIcon({ status }) {
-  if (status === 'saving') return <span className="pk-loading-bars" aria-hidden="true"><i /><i /><i /></span>;
-  if (status === 'success') return <svg className="pk-success-check" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>;
-  return <Arrow />;
-}
-function SignupForm() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle');
-  const [message, setMessage] = useState('');
-  const pending = useRef(false);
-  async function submit(event) {
-    event.preventDefault();
-    if (pending.current || status === 'success') return;
-    if (new FormData(event.currentTarget).get('company')) return;
-    pending.current = true; setStatus('saving'); setMessage('');
-    try {
-      const { joinPocketWaitlist } = await import('./lib/pocketWaitlist.js');
-      await joinPocketWaitlist(email);
-      setStatus('success'); setMessage('You’re on the list. We’ll email you when Pocket is ready.');
-    } catch { setStatus('error'); setMessage('We couldn’t save your email. Please check your connection and try again.'); }
-    finally { pending.current = false; }
-  }
-  return <form className="pk-signup" data-status={status} onSubmit={submit} aria-busy={status === 'saving'}>
-    <label htmlFor="pocket-email">Email address</label>
-    <div className="pk-input">
-      <input id="pocket-email" name="email" type="email" autoComplete="email" placeholder="you@yourstudio.com" required maxLength={254} value={email} readOnly={status === 'saving' || status === 'success'} onInvalid={() => { setStatus('invalid'); setMessage('Enter a valid email address to join the waitlist.'); }} onChange={e => { setEmail(e.target.value); setStatus('idle'); setMessage(''); }} aria-invalid={status === 'invalid'} aria-describedby="signup-message" />
-      <button className="pk-join-button" type="submit" disabled={status === 'saving' || status === 'success'}>
-        <span className="pk-join-content" key={status}>
-          <span>{status === 'saving' ? 'Saving your spot' : status === 'success' ? 'You’re on the list' : status === 'error' ? 'Try again' : 'Join the waitlist'}</span>
-          <span className="pk-join-icon"><SignupIcon status={status} /></span>
-        </span>
-      </button>
-    </div>
-    <div className="pk-honeypot" aria-hidden="true"><label>Company<input name="company" tabIndex={-1} autoComplete="off" /></label></div>
-    <p id="signup-message" className={status === 'error' || status === 'invalid' ? 'pk-error' : ''} role="status" aria-live="polite">{message || 'By joining, you agree to receive Pocket launch news and development updates.'}</p>
-  </form>;
-}
 
 export default function PocketPage() {
   const root = useRef(null);
@@ -120,7 +81,6 @@ export default function PocketPage() {
     <PocketDemos />
     <PocketPurchase />
     <section className="pk-compat pk-section" id="compatibility" data-reveal><div><div className="pk-eyebrow">03 / At home in your setup</div><h2>Your session.<br /><em>Meet Pocket.</em></h2><p>macOS 11 or later and Windows.<br />One launch purchase includes both platforms.</p></div><div className="pk-platforms"><div><span>01</span><h3>macOS</h3><p>VST3 + Audio Unit</p><small>Universal binary · Certification in progress</small></div><div><span>02</span><h3>Windows</h3><p>VST3</p><small>Unsigned build</small></div></div></section>
-    <section className="pk-waitlist" id="waitlist"><div className="pk-waitlist-inner" data-reveal><div className="pk-eyebrow"><i /> Something good is taking shape</div><h2>Your next mix.<br /><em>A little more Pocket.</em></h2><p>Be the first to know when it’s ready.</p><SignupForm /></div><span className="pk-watermark" aria-hidden="true">pocket</span></section>
     <footer className="pk-footer"><a className="pk-brand" href="#top"><img src="/pocket/Branding/Pocket-logo.png" alt="" />pocket<span>®</span></a><span>Made by Stevenson Nagathota</span><a href="mailto:nagathota.stevenson@gmail.com">Say hello <Arrow /></a><a href="/">Back to studio <Arrow /></a></footer>
   </main>;
 }
