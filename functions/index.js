@@ -48,7 +48,17 @@ export const pocketApi=onRequest({...options,secrets:[key]},async(req,res)=>{
    return res.json({url:s.url});
   }
   if(route==='/status' && req.method==='GET'){
-   const order=(await ref.get()).val();
+   let order=(await ref.get()).val();
+   // Webhooks are the normal path. If Stripe is retrying a verified event, recover
+   // the pending order by retrieving the server-side Checkout Session directly.
+   if(order?.status==='pending'&&order.sessionId){
+    const session=await stripe().checkout.sessions.retrieve(order.sessionId);
+    if(paidSession(session,key.value().trim().startsWith('sk_live_'))){
+     await ref.update({status:'paid',email:session.customer_details.email,paymentIntent:session.payment_intent,
+      paymentStatus:session.payment_status,amountPaid:session.amount_total,currency:session.currency,paidAt:Date.now(),licenseKey:null});
+     order=(await ref.get()).val();
+    }
+   }
    if(order?.status==='paid'){
     const payment=await stripe().paymentIntents.retrieve(order.paymentIntent,{expand:['latest_charge']});
     if(!downloadEligible(payment))return res.json({status:'refunded'});
@@ -86,17 +96,14 @@ export const pocketStripeWebhook=onRequest({...options,secrets:[key,hook]},async
  if(!paidSession(s,key.value().trim().startsWith('sk_live_')))return res.json({received:true});
  try{
   const ref=getDatabase().ref('pocketOrders/'+s.metadata.order_id);
-  const result=await ref.transaction(order=>{
-   if(!order)return;
-   if(order.product!==PRODUCT||order.amountExpected!==AMOUNT||order.sessionId&&order.sessionId!==s.id)return;
-   if(order.status==='paid')return order;
-   return {...order,status:'paid',email:s.customer_details.email,sessionId:s.id,paymentIntent:s.payment_intent,
-    paymentStatus:s.payment_status,amountPaid:s.amount_total,currency:s.currency,paidAt:Date.now(),stripeEventId:event.id,licenseKey:null};
-  });
-  if(!result.committed||result.snapshot.val()?.status!=='paid'){
+  const order=(await ref.get()).val();
+  if(!order||order.product!==PRODUCT||order.amountExpected!==AMOUNT||order.sessionId&&order.sessionId!==s.id){
    console.error('Stripe order unavailable',s.metadata.order_id,s.id);
    return res.status(500).send('Order unavailable; retry required');
   }
+  if(order.status==='paid')return res.json({received:true});
+  await ref.update({status:'paid',email:s.customer_details.email,sessionId:s.id,paymentIntent:s.payment_intent,
+   paymentStatus:s.payment_status,amountPaid:s.amount_total,currency:s.currency,paidAt:Date.now(),stripeEventId:event.id,licenseKey:null});
   return res.json({received:true});
  }catch{return res.status(500).send('Persistence failed; retry required');}
 });
